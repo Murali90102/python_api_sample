@@ -1,0 +1,9 @@
+services:
+  pythonfastapi:
+    container_name: pythonfastapi
+    image: "${IMAGE_NAME_WITH_VERSION}" # test:3
+    environment:
+      APP_PORT: ${APP_PORT} # 8000
+    ports:
+      - '${HOST_PORT}:${APP_PORT}' #8000:8000
+    restart: "no"
