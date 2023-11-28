@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pythonfastapi
+spec:
+  selector:
+    app: pythonfastapi
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pythonfastapi
+  labels:
+    app: pythonfastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pythonfastapi
+  template:
+    metadata:
+      labels:
+        app: pythonfastapi
+    spec:
+      containers:
+      - name: pythonfastapi
+        image: murali90102/pythonfastapi:1
+        env:
+        - name: APP_PORT
+          value: 8000
+        ports:
+        - containerPort: 8000
+
