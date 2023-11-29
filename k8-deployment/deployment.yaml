@@ -52,4 +52,4 @@ spec:
               service:
                 name: pythonfastapi
                 port:
-                  number: 8080
+                  number: 8000
