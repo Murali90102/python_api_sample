@@ -3,6 +3,7 @@ pipeline{
     environment{
         IMAGE_NAME = "pythonfastapi"
         TAG = "${BUILD_ID}"
+        REPO = "murali90102"
         
         KUBECONFIG_FILE = "/var/lib/jenkins/k8-data/config"
     }
@@ -15,9 +16,7 @@ pipeline{
         stage("Docker_Image_Build"){
             steps{
                 sh 'docker ps'
-                withCredentials([usernamePassword(credentialsId: 'DOCKER_CREDS', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
-                    sh "docker build -t ${DOCKER_USER}/${IMAGE_NAME}:${TAG} ."
-                }
+                sh "docker build -t ${REPO}/${IMAGE_NAME}:${TAG} ."
             }
         }
         stage("Docker_Image_Push"){
@@ -25,19 +24,19 @@ pipeline{
                 sh 'docker ps'
                 withCredentials([usernamePassword(credentialsId: 'DOCKER_CREDS', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
                     sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}"
-                    sh "docker push ${DOCKER_USER}/${IMAGE_NAME}:${TAG}"
+                    sh "docker push ${REPO}/${IMAGE_NAME}:${TAG}"
 
                     // Clean Up
-                    sh "docker rmi -f ${DOCKER_USER}/${IMAGE_NAME}:${TAG}"
+                    sh "docker rmi -f ${REPO}/${IMAGE_NAME}:${TAG}"
                     sh "docker system prune -f"
                 }
             }
         }
         stage("K8-Deployment"){
             steps{
-                sh "sed -i \"s#murali90102/pythonfastapi:1#${DOCKER_USER}/${IMAGE_NAME}:${TAG}@1 k8-deployment/deployment.yaml\""
+                sh "sed -i \"s#murali90102/pythonfastapi:1#${REPO}/${IMAGE_NAME}:${TAG}#1\" k8-deployment/deployment.yaml"
                 sh "kubectl --kubeconfig ${KUBECONFIG_FILE} apply -f k8-deployment/deployment.yaml"
-                sh "curl $(kubectl --kubeconfig ${KUBECONFIG_FILE} get ingress pythonfastapi-ingress -o jsonpath='{.status.loadBalancer.ingress[].ip}')"
+                sh "curl \$(kubectl --kubeconfig ${KUBECONFIG_FILE} get ingress pythonfastapi-ingress -o jsonpath='{.status.loadBalancer.ingress[].ip}')"
             }
         }
     }
