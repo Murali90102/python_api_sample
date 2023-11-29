@@ -33,7 +33,7 @@ spec:
         image: murali90102/pythonfastapi:1
         env:
         - name: "APP_PORT"
-          value: 8000
+          value: "8000"
         ports:
         - containerPort: 8000
 
