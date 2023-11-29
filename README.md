@@ -18,7 +18,7 @@
 #### $ `kubectl apply -f deployment.yaml`
 
 #### \$ `curl $(kubectl get ingress pythonfastapi-ingress -o jsonpath='{.status.loadBalancer.ingress[].ip}')`
-{"message":"Hello World"}
+"Hello World!"
 
 
 ## Docker installation
