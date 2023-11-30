@@ -1,43 +1,44 @@
-pipeline{
-    agent any
-    environment{
+pipeline {
+    agent { label 'worker' }	
+    environment {	
+		DOCKERHUB_CREDENTIALS=credentials('docker_login')
         IMAGE_NAME = "pythonfastapi"
         TAG = "${BUILD_ID}"
         REPO = "murali90102"
-        
-        KUBECONFIG_FILE = "/var/lib/jenkins/k8-data/config"
-    }
-    stages{
-        stage("Git-Checkout"){
-            steps{
+	} 
+    stages {
+        stage('SCM Checkout') {
+            steps {
+                // Get some code from a GitHub repository
                 git branch: 'main', url: 'https://github.com/Murali90102/python_api_sample.git'
             }
-        }
-        stage("Docker_Image_Build"){
-            steps{
-                sh 'docker ps'
-                sh "docker build -t ${REPO}/${IMAGE_NAME}:${TAG} ."
+		}
+        stage("Docker build"){
+            steps {
+				sh 'docker version'
+				sh "docker build -t ${REPO}/${IMAGE_NAME}:${TAG} ."
+				sh 'docker ps'
             }
         }
-        stage("Docker_Image_Push"){
-            steps{
-                sh 'docker ps'
-                withCredentials([usernamePassword(credentialsId: 'DOCKER_CREDS', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USER')]) {
-                    sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}"
-                    sh "docker push ${REPO}/${IMAGE_NAME}:${TAG}"
+        stage('Login2DockerHub') {
 
-                    // Clean Up
-                    sh "docker rmi -f ${REPO}/${IMAGE_NAME}:${TAG}"
-                    sh "docker system prune -f"
-                }
-            }
-        }
-        stage("K8-Deployment"){
-            steps{
+			steps {
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+			}
+		}
+        stage('Push2DockerHub') {
+
+			steps {
+				sh "docker push ${REPO}/${IMAGE_NAME}:${TAG}"
+			}
+		}
+		stage('Deploy to Kubernetes Cluster') {
+            steps {
                 sh "sed -i \"s#murali90102/pythonfastapi:1#${REPO}/${IMAGE_NAME}:${TAG}#1\" k8-deployment/deployment.yaml"
-                sh "kubectl --kubeconfig ${KUBECONFIG_FILE} apply -f k8-deployment/deployment.yaml"
-                sh "curl \$(kubectl --kubeconfig ${KUBECONFIG_FILE} get ingress pythonfastapi-ingress -o jsonpath='{.status.loadBalancer.ingress[].ip}')"
-            }
-        }
+		        script {
+		                 sshPublisher(publishers: [sshPublisherDesc(configName: 'kubernetes', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: 'kubectl apply -f k8-deployment/deployment.yaml', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '.', remoteDirectorySDF: false, removePrefix: '', sourceFiles: 'k8-deployment/deployment.yaml')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: true)])
+		                }
+                  }
+	    }
     }
 }
