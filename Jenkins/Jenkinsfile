@@ -41,4 +41,9 @@ pipeline {
                   }
 	    }
     }
+    post{
+        always{
+            emailext body: "Jenkins Job_url: ${JOB_URL}. Status: ${currentBuild.result}", subject: 'Jenkins Build for ${JOB_NAME}', to: 'murali.appari@outlook.com'
+        }
+    }
 }
