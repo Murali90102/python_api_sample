@@ -79,7 +79,7 @@ systemctl start kubelet
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Only on Master Node:
 #~~~~~~~~~~~~~~~~~~~~~
-#Update Master_Private IP in --apiserver-advertise-address=172.31.33.90
+##### Update Master_Private IP in --apiserver-advertise-address=172.31.33.90
 
 sudo kubeadm init --apiserver-advertise-address=172.31.34.145 --pod-network-cidr=192.168.0.0/16 --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem
 
