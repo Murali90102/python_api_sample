@@ -36,3 +36,5 @@
 #### $ minikube start --driver=docker --force
 #### $ minikube start --network-plugin=cni --cni=calico --force
 #### $ minikube addons enable ingress
+
+###end
